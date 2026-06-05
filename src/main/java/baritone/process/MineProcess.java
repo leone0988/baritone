@@ -469,13 +469,52 @@ public final class MineProcess extends BaritoneProcessHelper implements IMinePro
     }
 
     public static boolean isNextToAir(CalculationContext ctx, BlockPos pos) {
-        int radius = Baritone.settings().allowOnlyExposedOresDistance.value;
-        for (int dx = -radius; dx <= radius; dx++) {
-            for (int dy = -radius; dy <= radius; dy++) {
-                for (int dz = -radius; dz <= radius; dz++) {
-                    if (Math.abs(dx) + Math.abs(dy) + Math.abs(dz) <= radius
-                            && MovementHelper.isTransparent(ctx.getBlock(pos.getX() + dx, pos.getY() + dy, pos.getZ() + dz))) {
-                        return true;
+        int minAir = Baritone.settings().exposedOresMinAirBlocks.value;
+        int maxDepth = Baritone.settings().allowOnlyExposedOresDistance.value + 1; // +1 to include the ore's direct neighbors
+        // BFS starting from the ore's transparent neighbors to verify connectivity of air blocks
+        Set<BlockPos> visited = new HashSet<>();
+        Queue<BlockPos> queue = new ArrayDeque<>();
+        int count = 0;
+        // Start with all direct transparent neighbors of the ore
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    if ((dx == 0 && dy == 0 && dz == 0) || Math.abs(dx) + Math.abs(dy) + Math.abs(dz) > 1) {
+                        continue; // Skip the ore itself and diagonals (only direct 6-neighbors)
+                    }
+                    BlockPos neighbor = pos.offset(dx, dy, dz);
+                    if (MovementHelper.isTransparent(ctx.getBlock(neighbor))) {
+                        visited.add(neighbor);
+                        queue.add(neighbor);
+                        count++;
+                        if (count >= minAir) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        // BFS through connected transparent blocks to find more air blocks
+        while (!queue.isEmpty()) {
+            BlockPos current = queue.poll();
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) {
+                    for (int dz = -1; dz <= 1; dz++) {
+                        if ((dx == 0 && dy == 0 && dz == 0) || Math.abs(dx) + Math.abs(dy) + Math.abs(dz) > 1) {
+                            continue; // Skip self and diagonals
+                        }
+                        BlockPos neighbor = current.offset(dx, dy, dz);
+                        if (neighbor.distManhattan(pos) > maxDepth || visited.contains(neighbor)) {
+                            continue;
+                        }
+                        if (MovementHelper.isTransparent(ctx.getBlock(neighbor))) {
+                            visited.add(neighbor);
+                            queue.add(neighbor);
+                            count++;
+                            if (count >= minAir) {
+                                return true;
+                            }
+                        }
                     }
                 }
             }

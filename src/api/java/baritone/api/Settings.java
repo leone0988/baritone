@@ -953,6 +953,13 @@ public final class Settings {
     public final Setting<Integer> allowOnlyExposedOresDistance = new Setting<>(1);
 
     /**
+     * When allowOnlyExposedOres is enabled this is the minimum number of air blocks (or transparent blocks)
+     * surrounding the ore for it to count as exposed. Default is 1, meaning at least one air block must be
+     * adjacent within the search radius for the ore to be considered exposed.
+     */
+    public final Setting<Integer> exposedOresMinAirBlocks = new Setting<>(1);
+
+    /**
      * When GetToBlock or non-legit Mine doesn't know any locations for the desired block, explore randomly instead of giving up.
      */
     public final Setting<Boolean> exploreForBlocks = new Setting<>(true);
