@@ -483,7 +483,7 @@ public final class MineProcess extends BaritoneProcessHelper implements IMinePro
                         continue; // Skip the ore itself and diagonals (only direct 6-neighbors)
                     }
                     BlockPos neighbor = pos.offset(dx, dy, dz);
-                    if (MovementHelper.isTransparent(ctx.getBlock(neighbor))) {
+                    if (MovementHelper.isTransparent(ctx.getBlock(neighbor.getX(), neighbor.getY(), neighbor.getZ()))) {
                         visited.add(neighbor);
                         queue.add(neighbor);
                         count++;
@@ -507,7 +507,7 @@ public final class MineProcess extends BaritoneProcessHelper implements IMinePro
                         if (neighbor.distManhattan(pos) > maxDepth || visited.contains(neighbor)) {
                             continue;
                         }
-                        if (MovementHelper.isTransparent(ctx.getBlock(neighbor))) {
+                        if (MovementHelper.isTransparent(ctx.getBlock(neighbor.getX(), neighbor.getY(), neighbor.getZ()))) {
                             visited.add(neighbor);
                             queue.add(neighbor);
                             count++;
